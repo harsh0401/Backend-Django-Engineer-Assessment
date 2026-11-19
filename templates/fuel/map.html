@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Fuel route map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .fuel-stop-number {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #176b5b;
+      color: #fff;
+      font: 700 13px/1 sans-serif;
+      box-shadow: 0 1px 5px #2228;
+    }
+  </style>
+</head>
+<body>
+  <div id="map" aria-label="Driving route and fuel stops"></div>
+  {{ route|json_script:"route-data" }}
+  {{ stops|json_script:"stops-data" }}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const route = JSON.parse(document.getElementById("route-data").textContent);
+    const stops = JSON.parse(document.getElementById("stops-data").textContent);
+    const map = L.map("map");
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+    const line = L.geoJSON(route, { style: { color: "#176b5b", weight: 5 } }).addTo(map);
+    stops.forEach((stop) => {
+      const number = document.createElement("span");
+      number.className = "fuel-stop-number";
+      number.textContent = String(stop.order);
+      const icon = L.divIcon({ html: number.outerHTML, className: "", iconSize: [34, 34], iconAnchor: [17, 17] });
+      const marker = L.marker([stop.lat, stop.lon], { icon }).addTo(map);
+      const popup = document.createElement("div");
+      const heading = document.createElement("strong");
+      heading.textContent = `${stop.order}. ${stop.name}`;
+      const details = document.createElement("p");
+      details.textContent = `${stop.address}, ${stop.city}, ${stop.state} | $${Number(stop.price_per_gallon).toFixed(3)}/gal`;
+      popup.append(heading, details);
+      marker.bindPopup(popup);
+    });
+    map.fitBounds(line.getBounds(), { padding: [24, 24] });
+  </script>
+</body>
+</html>

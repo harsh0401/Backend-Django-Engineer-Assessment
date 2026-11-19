@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "Fuel Route Planner API",
+    "description": "Create a cost-optimal plan, retrieve its persisted result, or open its map.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "plan_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create plan",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"Dallas, TX\",\n  \"finish\": \"Denver, CO\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{base_url}}/api/v1/fuel-plans/"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('plan_id', pm.response.json().id); }"], "type": "text/javascript" }
+      }]
+    },
+    {
+      "name": "Create plan with GET",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/fuel-plans/?start=Dallas%2C%20TX&finish=Denver%2C%20CO"
+      }
+    },
+    {
+      "name": "Retrieve persisted plan",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/fuel-plans/{{plan_id}}/" }
+    },
+    {
+      "name": "Open plan map",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/fuel-plans/{{plan_id}}/map/" }
+    },
+    {
+      "name": "Swagger UI",
+      "request": { "method": "GET", "url": "{{base_url}}/api/docs/" }
+    }
+  ]
+}
