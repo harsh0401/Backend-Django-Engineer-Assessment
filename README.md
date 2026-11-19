@@ -2,6 +2,34 @@
 
 A Django REST API that returns one driving route through the USA, the minimum-cost fuel purchases along that route, and a standalone Leaflet map. Requests accept place names or coordinates. Computed plans are stored and can be retrieved without recomputation.
 
+## Demonstrated results
+
+The following results were observed locally on November 19, 2026 using OSRM routing and Nominatim geocoding. They are demonstration snapshots, not live fuel prices or a guarantee of results on a fresh database.
+
+| Metric | Chicago, IL to Atlanta, GA |
+| --- | --- |
+| Driving distance | 683.73 miles |
+| Fuel stops | 2 |
+| Fuel purchased | 18.5 gallons |
+| Fuel purchase cost | $66.64 |
+| Routing requests made | 1 |
+| Reported compute time | 2,464.45 ms |
+
+![Chicago to Atlanta driving route with two numbered fuel stops](docs/results/chicago-atlanta-map.png)
+
+Map data: [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). Rendered with Leaflet. Numbered markers indicate selected fuel stops, not the start and finish.
+
+The timing is one uncached local request, not a benchmark, and excludes browser map loading. The vehicle starts with a full 50-gallon tank; the displayed cost excludes that initial fuel. Optimization uses the available geocoded stations along the selected route and excludes station detours.
+
+After setup and station preparation, request `/api/v1/fuel-plans/?start=Chicago,IL&finish=Atlanta,GA`, then open the returned `map_url` on the same server. Plan IDs belong to the database that created them; saved local demo URLs do not transfer to a fresh clone.
+
+### Findings and verification
+
+- Dallas to Austin was about 195 miles and needed no fuel purchases with the default full starting tank.
+- Station-coordinate coverage is essential: the Chicago to Denver attempt failed because the first available station was beyond the 500-mile range. This is a data-coverage limitation, not evidence that the actual road has no stations.
+- Cold requests need at most two location lookups plus one driving-route request. Saved-plan retrieval makes no routing or geocoding requests; browser map tiles are separate requests.
+- Before publication, all 40 tests passed locally on Windows with Python 3.12.10, with 93.25% domain/service coverage. Ruff and Django system checks passed. These local results do not confirm a Linux CI run.
+
 ## Architecture
 
 ```mermaid
